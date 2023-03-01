@@ -1,4 +1,4 @@
-﻿#if ENABLE_INPUT_SYSTEM 
+﻿#if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
 #endif
 
@@ -36,12 +36,16 @@ namespace UnityTemplateProjects
                 z += rotatedTranslation.z;
             }
 
-            public void LerpTowards(CameraState target, float positionLerpPct, float rotationLerpPct)
+            public void LerpTowards(
+                CameraState target,
+                float positionLerpPct,
+                float rotationLerpPct
+            )
             {
                 yaw = Mathf.Lerp(yaw, target.yaw, rotationLerpPct);
                 pitch = Mathf.Lerp(pitch, target.pitch, rotationLerpPct);
                 roll = Mathf.Lerp(roll, target.roll, rotationLerpPct);
-                
+
                 x = Mathf.Lerp(x, target.x, positionLerpPct);
                 y = Mathf.Lerp(y, target.y, positionLerpPct);
                 z = Mathf.Lerp(z, target.z, positionLerpPct);
@@ -53,7 +57,7 @@ namespace UnityTemplateProjects
                 t.position = new Vector3(x, y, z);
             }
         }
-        
+
         CameraState m_TargetCameraState = new CameraState();
         CameraState m_InterpolatingCameraState = new CameraState();
 
@@ -61,14 +65,23 @@ namespace UnityTemplateProjects
         [Tooltip("Exponential boost factor on translation, controllable by mouse wheel.")]
         public float boost = 3.5f;
 
-        [Tooltip("Time it takes to interpolate camera position 99% of the way to the target."), Range(0.001f, 1f)]
+        [
+            Tooltip("Time it takes to interpolate camera position 99% of the way to the target."),
+            Range(0.001f, 1f)
+        ]
         public float positionLerpTime = 0.2f;
 
         [Header("Rotation Settings")]
         [Tooltip("X = Change in mouse position.\nY = Multiplicative factor for camera rotation.")]
-        public AnimationCurve mouseSensitivityCurve = new AnimationCurve(new Keyframe(0f, 0.5f, 0f, 5f), new Keyframe(1f, 2.5f, 0f, 0f));
+        public AnimationCurve mouseSensitivityCurve = new AnimationCurve(
+            new Keyframe(0f, 0.5f, 0f, 5f),
+            new Keyframe(1f, 2.5f, 0f, 0f)
+        );
 
-        [Tooltip("Time it takes to interpolate camera rotation 99% of the way to the target."), Range(0.001f, 1f)]
+        [
+            Tooltip("Time it takes to interpolate camera rotation 99% of the way to the target."),
+            Range(0.001f, 1f)
+        ]
         public float rotationLerpTime = 0.01f;
 
         [Tooltip("Whether or not to invert our Y axis for mouse input to rotation.")]
@@ -79,7 +92,7 @@ namespace UnityTemplateProjects
         InputAction verticalMovementAction;
         InputAction lookAction;
         InputAction boostFactorAction;
-        bool        mouseRightButtonPressed;
+        bool mouseRightButtonPressed;
 
         void Start()
         {
@@ -91,7 +104,8 @@ namespace UnityTemplateProjects
             boostFactorAction = map.AddAction("Boost Factor", binding: "<Mouse>/scroll");
 
             lookAction.AddBinding("<Gamepad>/rightStick").WithProcessor("scaleVector2(x=15, y=15)");
-            movementAction.AddCompositeBinding("Dpad")
+            movementAction
+                .AddCompositeBinding("Dpad")
                 .With("Up", "<Keyboard>/w")
                 .With("Up", "<Keyboard>/upArrow")
                 .With("Down", "<Keyboard>/s")
@@ -100,7 +114,8 @@ namespace UnityTemplateProjects
                 .With("Left", "<Keyboard>/leftArrow")
                 .With("Right", "<Keyboard>/d")
                 .With("Right", "<Keyboard>/rightArrow");
-            verticalMovementAction.AddCompositeBinding("Dpad")
+            verticalMovementAction
+                .AddCompositeBinding("Dpad")
                 .With("Up", "<Keyboard>/pageUp")
                 .With("Down", "<Keyboard>/pageDown")
                 .With("Up", "<Keyboard>/e")
@@ -158,17 +173,17 @@ namespace UnityTemplateProjects
 #endif
             return direction;
         }
-        
+
         void Update()
         {
-            // Exit Sample  
+            // Exit Sample
 
             if (IsEscapePressed())
             {
                 Application.Quit();
-				#if UNITY_EDITOR
-				UnityEditor.EditorApplication.isPlaying = false; 
-				#endif
+#if UNITY_EDITOR
+                UnityEditor.EditorApplication.isPlaying = false;
+#endif
             }
 
             // Hide and lock cursor when right mouse button pressed
@@ -190,13 +205,15 @@ namespace UnityTemplateProjects
                 var mouseMovement = GetInputLookRotation() * Time.deltaTime * 5;
                 if (invertY)
                     mouseMovement.y = -mouseMovement.y;
-                
-                var mouseSensitivityFactor = mouseSensitivityCurve.Evaluate(mouseMovement.magnitude);
+
+                var mouseSensitivityFactor = mouseSensitivityCurve.Evaluate(
+                    mouseMovement.magnitude
+                );
 
                 m_TargetCameraState.yaw += mouseMovement.x * mouseSensitivityFactor;
                 m_TargetCameraState.pitch += mouseMovement.y * mouseSensitivityFactor;
             }
-            
+
             // Translation
             var translation = GetInputTranslationDirection() * Time.deltaTime;
 
@@ -205,7 +222,7 @@ namespace UnityTemplateProjects
             {
                 translation *= 10.0f;
             }
-            
+
             // Modify movement by a boost factor (defined in Inspector and modified in play mode through the mouse scroll wheel)
             boost += GetBoostFactor();
             translation *= Mathf.Pow(2.0f, boost);
@@ -214,9 +231,15 @@ namespace UnityTemplateProjects
 
             // Framerate-independent interpolation
             // Calculate the lerp amount, such that we get 99% of the way to our target in the specified time
-            var positionLerpPct = 1f - Mathf.Exp((Mathf.Log(1f - 0.99f) / positionLerpTime) * Time.deltaTime);
-            var rotationLerpPct = 1f - Mathf.Exp((Mathf.Log(1f - 0.99f) / rotationLerpTime) * Time.deltaTime);
-            m_InterpolatingCameraState.LerpTowards(m_TargetCameraState, positionLerpPct, rotationLerpPct);
+            var positionLerpPct =
+                1f - Mathf.Exp((Mathf.Log(1f - 0.99f) / positionLerpTime) * Time.deltaTime);
+            var rotationLerpPct =
+                1f - Mathf.Exp((Mathf.Log(1f - 0.99f) / rotationLerpTime) * Time.deltaTime);
+            m_InterpolatingCameraState.LerpTowards(
+                m_TargetCameraState,
+                positionLerpPct,
+                rotationLerpPct
+            );
 
             m_InterpolatingCameraState.UpdateTransform(transform);
         }
@@ -242,19 +265,18 @@ namespace UnityTemplateProjects
         bool IsBoostPressed()
         {
 #if ENABLE_INPUT_SYSTEM
-            bool boost = Keyboard.current != null ? Keyboard.current.leftShiftKey.isPressed : false; 
+            bool boost = Keyboard.current != null ? Keyboard.current.leftShiftKey.isPressed : false;
             boost |= Gamepad.current != null ? Gamepad.current.xButton.isPressed : false;
             return boost;
 #else
             return Input.GetKey(KeyCode.LeftShift);
 #endif
-
         }
 
         bool IsEscapePressed()
         {
 #if ENABLE_INPUT_SYSTEM
-            return Keyboard.current != null ? Keyboard.current.escapeKey.isPressed : false; 
+            return Keyboard.current != null ? Keyboard.current.escapeKey.isPressed : false;
 #else
             return Input.GetKey(KeyCode.Escape);
 #endif
@@ -264,7 +286,10 @@ namespace UnityTemplateProjects
         {
 #if ENABLE_INPUT_SYSTEM
             bool canRotate = Mouse.current != null ? Mouse.current.rightButton.isPressed : false;
-            canRotate |= Gamepad.current != null ? Gamepad.current.rightStick.ReadValue().magnitude > 0 : false;
+            canRotate |=
+                Gamepad.current != null
+                    ? Gamepad.current.rightStick.ReadValue().magnitude > 0
+                    : false;
             return canRotate;
 #else
             return Input.GetMouseButton(1);
@@ -288,7 +313,5 @@ namespace UnityTemplateProjects
             return Input.GetMouseButtonUp(1);
 #endif
         }
-
     }
-
 }
